@@ -33,7 +33,7 @@ FdiImage::Header::Header()
 	assert(sizeof signatureText == signatureSize + 1);
 	std::memcpy(signature, signatureText, signatureSize);
 
-	const char creatorText[] = "Created by fsd2fdi version 0.1";
+	const char creatorText[] = "RTW's fsd2fdi version 0.1";
 	std::memset(creator, 0x20, creatorSize);
 	std::memcpy(creator, creatorText, sizeof creatorText - 1);
 	cr = 0x0D;
@@ -54,6 +54,14 @@ FdiImage::Header::Header()
 	headWidth = 2;		// 96 tpi
 	reserved1 = 0;
 	reserved2 = 0;
+}
+
+
+void FdiImage::setComment(const char* text)
+{
+	assert(text);
+	std::size_t len = std::min(Header::commentSize, std::strlen(text));
+	std::memcpy(header.comment, text, len);
 }
 
 

@@ -48,6 +48,7 @@ public:
 		std::vector<byte> data;
 	};
 
+	void setComment(const char* text);
 	Track& addTrack();
 	void write();
 

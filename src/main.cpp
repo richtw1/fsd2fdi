@@ -28,6 +28,8 @@ void convert(const char* fsdFilename, const char* fdiFilename, bool verbose)
 	// Create FDI file
 	FdiImage fdi(fdiFilename);
 
+	fdi.setComment(fsd.getTitle().c_str());
+
 	// @todo: calculate best gap sizes based on total data size
 	// For now these are the recommended defaults for a regular DFS disc
 	const int gap1Size = 16;
@@ -35,6 +37,8 @@ void convert(const char* fsdFilename, const char* fdiFilename, bool verbose)
 
 	for (const auto& track : fsd.getTracks())
 	{
+		// @todo: support unformatted / unreadable tracks
+
 		FdiImage::Track& fdiTrack = fdi.addTrack();
 		fdiTrack.addGap1AndSync(gap1Size);
 

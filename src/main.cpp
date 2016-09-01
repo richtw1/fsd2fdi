@@ -1,0 +1,84 @@
+#include "fdiimage.h"
+#include "fsdimage.h"
+
+#include <algorithm>
+#include <cctype>
+#include <exception>
+#include <iostream>
+#include <string>
+
+
+void convert(const char* fsdFilename, const char* fdiFilename)
+{
+	// Open FSD file
+	FSDImage fsd(fsdFilename);
+
+	std::cout << "Title: " << fsd.getTitle() << std::endl;
+	std::cout << "Day: " << fsd.getCreationData().day << std::endl;
+	std::cout << "Month: " << fsd.getCreationData().month << std::endl;
+	std::cout << "Year: " << fsd.getCreationData().year << std::endl;
+	std::cout << "Id: " << fsd.getCreationData().creatorId << std::endl;
+	std::cout << "Release: " << fsd.getCreationData().releaseNum << std::endl;
+	std::cout << "Num tracks: " << fsd.getNumTracks() << std::endl;
+	std::cout << std::endl;
+
+	for (const auto& track : fsd.getTracks())
+	{
+		std::cout << "Track " << track.getTrackNumber() << ":" << std::endl;
+		for (const auto& sector : track.getSectors())
+		{
+			std::cout << "  Sector " << sector.getSectorId() << ": " << sector.getTrackId() << " " << sector.getHeadNumber() << " " << sector.getSize() << " " << sector.getRealSize() << " " << sector.isDeletedData() << std::endl;
+		}
+	}
+
+	// Create FDI file
+	FDIImage fdi(fdiFilename);
+}
+
+
+int main(int argc, char* argv[])
+{
+	// Check parameters correct
+	if (argc != 2 && argc != 3)
+	{
+		std::cerr << "Syntax: fsd2fdi <fsd filename> [<fdi filename>]" << std::endl;
+		return 1;
+	}
+
+	try
+	{
+		if (argc == 3)
+		{
+			// Supplied an explicit output filename
+			convert(argv[1], argv[2]);
+		}
+		else
+		{
+			// Build output filename from input filename
+			static const char fsdExtension[] = ".fsd";
+			static const char fdiExtension[] = ".fdi";
+
+			std::string fdiFilename = argv[1];
+			auto it = std::find_end(std::begin(fdiFilename), std::end(fdiFilename), fsdExtension, fsdExtension + 4, [](char a, char b) { return std::tolower(a) == std::tolower(b); });
+			if (it != fdiFilename.end())
+			{
+				// Replace extension in-place
+				fdiFilename.replace(it, it + 4, fdiExtension);
+			}
+			else
+			{
+				// Append extension to end of input filename as .fsd wasn't found in the string
+				fdiFilename += fdiExtension;
+			}
+
+			convert(argv[1], fdiFilename.c_str());
+		}
+
+		return 0;
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << "Error: " << e.what() << std::endl;
+		return 1;
+	}
+}

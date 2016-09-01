@@ -1,0 +1,12 @@
+## Ignore Visual Studio files
+
+.vs/
+*.VC.db
+*.VC.VC.opendb
+*.vcxproj.user
+
+## Ignore intermediate files and build results
+
+bin/
+obj/
+*.fdi

@@ -7,22 +7,46 @@
 #include "types.h"
 
 
-class FDIImage
+class FdiImage
 {
 public:
 
-	explicit FDIImage(const char* filename);
-
-	void write();
-
-	class Sector
-	{
-	};
+	explicit FdiImage(const char* filename);
 
 	class Track
 	{
-		std::vector<Sector> sectors;
+	public:
+		void addGap1AndSync(int size) { addGapAndSync(size); }
+		void addSectorHeader(int trackId, int headId, int sectorId, int sizeId);
+		void addGap2AndSync() { addGapAndSync(11); }
+		void addSectorData(const std::vector<byte>& sectorData, bool deletedData, bool validCrc);
+		void addGap3AndSync(int size) { addGapAndSync(size); }
+		void addGap4();
+
+	private:
+		void addGapAndSync(int size);
+		void addGap(int size);
+		void addSync();
+
+		// Descriptor values defined by the FDI format
+		struct FdiFmDescriptors
+		{
+			static const byte sectorIdMark = 0x07;
+			static const byte dataMark = 0x05;
+			static const byte deletedDataMark = 0x02;
+			static const byte fmDecodedData = 0x0C;
+			static const byte fmDecodedData65536 = 0x0D;
+			static const byte fmDecodedRleData = 0x09;
+		};
+
+		// Total data size in bytes of an FM track
+		static const int trackSize = 3125;
+
+		std::vector<byte> data;
 	};
+
+	Track& addTrack();
+	void write();
 
 private:
 

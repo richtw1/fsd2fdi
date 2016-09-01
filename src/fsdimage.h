@@ -2,20 +2,21 @@
 #define FSDIMAGE_H_
 
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "types.h"
 
 
-class FSDImage
+class FsdImage
 {
 public:
 
-	explicit FSDImage(const char* filename);
+	explicit FsdImage(const char* filename);
 
 	class Sector
 	{
-		friend class FSDImage;
+		friend class FsdImage;
 
 	public:
 		int getTrackId() const { return trackId; }
@@ -41,13 +42,14 @@ public:
 
 	class Track
 	{
-		friend class FSDImage;
+		friend class FsdImage;
 
 	public:
 		int getTrackNumber() const { return trackNumber; }
 		bool isReadable() const { return readable; }
 		const std::vector<Sector>& getSectors() const { return sectors; }
 		int getNumSectors() const { return sectors.size(); }
+		int getTotalDataSize() const;
 
 	private:
 		int trackNumber;

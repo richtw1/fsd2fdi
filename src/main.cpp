@@ -8,31 +8,54 @@
 #include <string>
 
 
-void convert(const char* fsdFilename, const char* fdiFilename)
+void convert(const char* fsdFilename, const char* fdiFilename, bool verbose)
 {
 	// Open FSD file
-	FSDImage fsd(fsdFilename);
+	FsdImage fsd(fsdFilename);
 
-	std::cout << "Title: " << fsd.getTitle() << std::endl;
-	std::cout << "Day: " << fsd.getCreationData().day << std::endl;
-	std::cout << "Month: " << fsd.getCreationData().month << std::endl;
-	std::cout << "Year: " << fsd.getCreationData().year << std::endl;
-	std::cout << "Id: " << fsd.getCreationData().creatorId << std::endl;
-	std::cout << "Release: " << fsd.getCreationData().releaseNum << std::endl;
-	std::cout << "Num tracks: " << fsd.getNumTracks() << std::endl;
-	std::cout << std::endl;
-
-	for (const auto& track : fsd.getTracks())
+	if (verbose)
 	{
-		std::cout << "Track " << track.getTrackNumber() << ":" << std::endl;
-		for (const auto& sector : track.getSectors())
-		{
-			std::cout << "  Sector " << sector.getSectorId() << ": " << sector.getTrackId() << " " << sector.getHeadNumber() << " " << sector.getSize() << " " << sector.getRealSize() << " " << sector.isDeletedData() << std::endl;
-		}
+		std::cout << "Title: " << fsd.getTitle() << std::endl;
+		std::cout << "Day: " << fsd.getCreationData().day << std::endl;
+		std::cout << "Month: " << fsd.getCreationData().month << std::endl;
+		std::cout << "Year: " << fsd.getCreationData().year << std::endl;
+		std::cout << "Id: " << fsd.getCreationData().creatorId << std::endl;
+		std::cout << "Release: " << fsd.getCreationData().releaseNum << std::endl;
+		std::cout << "Num tracks: " << fsd.getNumTracks() << std::endl;
+		std::cout << std::endl;
 	}
 
 	// Create FDI file
-	FDIImage fdi(fdiFilename);
+	FdiImage fdi(fdiFilename);
+
+	// @todo: calculate best gap sizes based on total data size
+	// For now these are the recommended defaults for a regular DFS disc
+	const int gap1Size = 16;
+	const int gap3Size = 21;
+
+	for (const auto& track : fsd.getTracks())
+	{
+		FdiImage::Track& fdiTrack = fdi.addTrack();
+		fdiTrack.addGap1AndSync(gap1Size);
+
+		int sectorCount = 0;
+		int numSectors = track.getNumSectors();
+		for (const auto& sector : track.getSectors())
+		{
+			fdiTrack.addSectorHeader(sector.getTrackId(), sector.getHeadNumber(), sector.getSectorId(), sector.getSizeId());
+			fdiTrack.addGap2AndSync();
+			fdiTrack.addSectorData(sector.getData(), sector.isDeletedData(), sector.hasCrcError());
+			sectorCount++;
+			if (sectorCount < numSectors)
+			{
+				// Don't add Gap 3 after the final sector
+				fdiTrack.addGap3AndSync(gap3Size);
+			}
+		}
+
+		fdiTrack.addGap4();
+	}
+
 }
 
 
@@ -50,7 +73,7 @@ int main(int argc, char* argv[])
 		if (argc == 3)
 		{
 			// Supplied an explicit output filename
-			convert(argv[1], argv[2]);
+			convert(argv[1], argv[2], false);
 		}
 		else
 		{
@@ -71,7 +94,7 @@ int main(int argc, char* argv[])
 				fdiFilename += fdiExtension;
 			}
 
-			convert(argv[1], fdiFilename.c_str());
+			convert(argv[1], fdiFilename.c_str(), false);
 		}
 
 		return 0;

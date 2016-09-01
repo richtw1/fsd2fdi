@@ -2,12 +2,13 @@
 
 #include <algorithm>
 #include <fstream>
+#include <numeric>
 #include <sstream>
 #include <stdexcept>
 #include <utility>
 
 
-FSDImage::FSDImage(const char* filename)
+FsdImage::FsdImage(const char* filename)
 {
 	// Open FSD file
 	std::ifstream file(filename, std::ios_base::binary);
@@ -74,6 +75,11 @@ FSDImage::FSDImage(const char* filename)
 				sector.data.resize(sector.getRealSize());
 				file.read(reinterpret_cast<char*>(&sector.data.front()), sector.getRealSize());
 			}
+			else
+			{
+				sector.realSize = 0;
+				sector.errorCode = 0;
+			}
 
 			track.sectors.push_back(std::move(sector));
 		}
@@ -86,9 +92,16 @@ FSDImage::FSDImage(const char* filename)
 }
 
 
-bool FSDImage::Sector::isEmpty() const
+bool FsdImage::Sector::isEmpty() const
 {
 	// 8271 initializes newly formatted sectors to E5 bytes.
 	// If it is in this state, we can choose to run-length encode it to save space.
 	return std::all_of(std::begin(data), std::end(data), [](char c) { return c == 0xE5; });
+}
+
+
+int FsdImage::Track::getTotalDataSize() const
+{
+	// Gets the size of all the sector data (not including headers, marks, gaps, CRCs etc)
+	return std::accumulate(std::begin(sectors), std::end(sectors), 0, [](int i, const Sector& s) { return i + s.getRealSize(); });
 }

@@ -1,8 +1,6 @@
 #include "fsdimage.h"
 
-#include <algorithm>
 #include <fstream>
-#include <numeric>
 #include <sstream>
 #include <stdexcept>
 #include <utility>
@@ -89,19 +87,4 @@ FsdImage::FsdImage(const char* filename)
 
 	// @todo: some kind of heuristic which detects a 'normal' disk image and performs a track-by-track sector skew
 	// (as the FSD format loses this information by rotating sectors into position so that logical sector 0 always appears first)
-}
-
-
-bool FsdImage::Sector::isEmpty() const
-{
-	// 8271 initializes newly formatted sectors to E5 bytes.
-	// If it is in this state, we can choose to run-length encode it to save space.
-	return std::all_of(std::begin(data), std::end(data), [](char c) { return c == 0xE5; });
-}
-
-
-int FsdImage::Track::getTotalDataSize() const
-{
-	// Gets the size of all the sector data (not including headers, marks, gaps, CRCs etc)
-	return std::accumulate(std::begin(sectors), std::end(sectors), 0, [](int i, const Sector& s) { return i + s.getRealSize(); });
 }

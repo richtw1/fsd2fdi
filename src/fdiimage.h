@@ -15,6 +15,8 @@ public:
 
 	class Track
 	{
+		friend class FdiImage;
+
 	public:
 		void addGap1AndSync(int size) { addGapAndSync(size); }
 		void addSectorHeader(int trackId, int headId, int sectorId, int sizeId);
@@ -24,9 +26,10 @@ public:
 		void addGap4();
 
 	private:
-		void addGapAndSync(int size);
+		void addRLEBlock(byte val, int num);
 		void addGap(int size);
 		void addSync();
+		void addGapAndSync(int size);
 
 		// Descriptor values defined by the FDI format
 		struct FdiFmDescriptors
@@ -49,6 +52,8 @@ public:
 	void write();
 
 private:
+
+	void alignFrom(int currentPos, int alignment);
 
 	struct Header
 	{

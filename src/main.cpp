@@ -56,6 +56,7 @@ void convert(const char* fsdFilename, const char* fdiFilename, bool verbose)
 		fdiTrack.addGap4();
 	}
 
+	fdi.write();
 }
 
 

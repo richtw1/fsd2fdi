@@ -28,7 +28,6 @@ public:
 		bool isDeletedData() const { return (errorCode == 0x20); }
 		bool hasCrcError() const { return (errorCode == 0x0E); }
 		const std::vector<byte>& getData() const { return data; }
-		bool isEmpty() const;
 
 	private:
 		int trackId;
@@ -49,7 +48,6 @@ public:
 		bool isReadable() const { return readable; }
 		const std::vector<Sector>& getSectors() const { return sectors; }
 		int getNumSectors() const { return sectors.size(); }
-		int getTotalDataSize() const;
 
 	private:
 		int trackNumber;
